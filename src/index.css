@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Open Sauce One – all weights used in the label ── */
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('/fonts/OpenSauceOne-Regular.woff2') format('woff2'),
+       url('/fonts/OpenSauceOne-Regular.ttf')   format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('/fonts/OpenSauceOne-Medium.woff2') format('woff2'),
+       url('/fonts/OpenSauceOne-Medium.ttf')   format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sauce One';
+  src: url('/fonts/OpenSauceOne-SemiBold.woff2') format('woff2'),
+       url('/fonts/OpenSauceOne-SemiBold.ttf')   format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Global reset ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  font-family: 'Open Sauce One', sans-serif;
+  background-color: #F5F5F0;
+  color: #1a1a1a;
+}
