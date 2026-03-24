@@ -9,11 +9,23 @@ const CUSTOMER_CARE_DEFAULT =
 
 const F = '"Open Sauce One", sans-serif'
 
-// Title-case: capitalise first letter of each word, preserve rest
-const toTitleCase = (str) =>
-  str.replace(/(\b\w)/g, (c) => c.toUpperCase())
+const MANUFACTURERS = [
+  'Ronch Polymers Private Limited Sur. No. C-38/1, Phase-1, Chakan MIDC, Village Mahalunge, Tal. Khed, Dist. Pune, Maharashtra - 410501',
+  'IoTfy Solutions Private Limited 411, D-21 Corporate Park, Sector-21 Dwarka, Delhi - 110077',
+  'M/s Accord Power Conversion Private Unit -2, Plot no. S-4/, Sy.114, E-City, Srinagar Village, Maheshwaram Mandal, Dist. Hyderabad - 501359 India',
+  'Filtrex Technologies Private Limited No. 36/4, Raghavendra Nagar, 4th Cross, HRBR Layout, Bengaluru, Karnataka - 560043',
+  'Lexcru Water Tech Private Limited Survey No. 569, Old Block No. 217 A, Mouje Chandiyel, Tal Daskroi, Ahmedabad, Gujarat - 382433',
+  'Geltron Techno Systems Private Limited Gadson House, Plot 9, Road 2, Sector 19, New Panvel, New Mumbai, Maharashtra - 410206',
+  'Unisem Electronics Private Limited No. 193, 18th A Main, 4th Cross Road, 6th Block, Koramangala, Bangalore - 560095',
+  'Cpfilter Technologies Private Limited No. 295/2, Kariapalli Matta, Muragamalla Road, Kagathi Panchayat, Karnataka - 563125',
+  'Sunglownx Electronics Private Limited Gut No. 59, Khandoba Mala, Dhanore Tal, Khed, Pune, Maharashtra - 412105',
+  'Gadson Electronics Gadson House, Plot No. 9, Road No 2, Sector 19, New Panvel, Navi Mumbai, Maharashtra - 410206',
+  'Kreet Electrovision Plot No. 4, Gali No. 1, DC Enclave, Sector 88, VPO-Wazirpur, Greater Faridabad, Haryana - 121001',
+  'No. 2216-2218 Xingfu East Road, Hongqiao Town, Yueqing City, Zhejiang Province, China',
+  'VaccFast Gala No. 8,9,10, Badrinath Building, Tungareshwar Industrial Complex, Sativali Naka, Vasai East - 401208',
+]
 
-// Allow only digits (and optionally one decimal point)
+const toTitleCase = (str) => str.replace(/(\b\w)/g, (c) => c.toUpperCase())
 const digitsOnly = (str) => str.replace(/[^\d.]/g, '')
 
 // ─── State factories ──────────────────────────────────────────────────────────
@@ -21,17 +33,18 @@ const makeInnerState = () => ({
   productName: '',
   skuCode: '',
   commodity: 'Water Purifier Spare Part',
-  mrp: '',           // raw number string e.g. "500"
+  mrp: '',
   unitSalePrice: '',
   netQuantity: '',
-  boxDimension: '',  // raw number string e.g. "120"
-  netWeight: '',     // raw number string e.g. "20"
-  grossWeight: '',   // raw number string e.g. "22"
+  boxDimension: '',
+  netWeight: '',
+  grossWeight: '',
   countryOfOrigin: 'India',
   manufacturedOn: '',
   marketedBy: MARKETED_BY_DEFAULT,
   manufacturedBy: '',
   customerCare: CUSTOMER_CARE_DEFAULT,
+  showUnitSalePrice: true,
   showNetWeight: true,
   showGrossWeight: true,
   showManufacturedOn: true,
@@ -42,7 +55,7 @@ const makeOuterState = () => ({
   skuCode: '',
   commodity: 'Water Purifier Spare Part',
   qtyInOuterBox: '',
-  innerPolybagDimensions: '',
+  innerPackagingDimensions: '',
   outerBoxDimensions: '',
   netWeight: '',
   grossWeight: '',
@@ -74,9 +87,104 @@ function Toggle({ checked, onChange }) {
   )
 }
 
-// ─── Form field components ────────────────────────────────────────────────────
+// ─── Manufacturer Dropdown ────────────────────────────────────────────────────
+const ADD_NEW = '__ADD_NEW__'
 
-// Standard text field
+function ManufacturerField({ value, onChange }) {
+  const [isCustom, setIsCustom] = useState(false)
+  const [customList, setCustomList] = useState([])
+
+  const allOptions = [...MANUFACTURERS, ...customList]
+  const isKnown = allOptions.includes(value)
+
+  const handleSelect = (e) => {
+    const v = e.target.value
+    if (v === ADD_NEW) {
+      setIsCustom(true)
+      onChange('')
+    } else {
+      setIsCustom(false)
+      onChange(v)
+    }
+  }
+
+  const handleCustomSave = (v) => {
+    if (v.trim() && !allOptions.includes(v.trim())) {
+      setCustomList((prev) => [...prev, v.trim()])
+    }
+    setIsCustom(false)
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Manufactured By</label>
+
+      {!isCustom ? (
+        <>
+          <select
+            value={isKnown ? value : (value ? ADD_NEW : '')}
+            onChange={handleSelect}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 transition appearance-none"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', paddingRight: '32px' }}
+          >
+            <option value="" disabled>Select manufacturer…</option>
+            {allOptions.map((m, i) => (
+              <option key={i} value={m}>
+                {m.length > 60 ? m.slice(0, 60) + '…' : m}
+              </option>
+            ))}
+            <option value={ADD_NEW}>+ Add new manufacturer</option>
+          </select>
+
+          {/* Show full selected value below if one is chosen */}
+          {value && (
+            <div className="mt-1 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 text-xs text-gray-500 leading-relaxed">
+              {value}
+            </div>
+          )}
+        </>
+      ) : (
+        <CustomManufacturerInput
+          onSave={(v) => { onChange(v); handleCustomSave(v) }}
+          onCancel={() => setIsCustom(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function CustomManufacturerInput({ onSave, onCancel }) {
+  const [text, setText] = useState('')
+  return (
+    <div className="flex flex-col gap-2">
+      <textarea
+        autoFocus
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Enter manufacturer name and full address…"
+        rows={4}
+        className="rounded-lg border border-indigo-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none transition"
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={() => onSave(text)}
+          disabled={!text.trim()}
+          className="flex-1 py-2 text-xs font-semibold text-white rounded-lg bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 transition"
+        >
+          Save & Use
+        </button>
+        <button
+          onClick={onCancel}
+          className="flex-1 py-2 text-xs font-semibold text-gray-500 rounded-lg border border-gray-200 hover:border-gray-300 transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Form field components ────────────────────────────────────────────────────
 function Field({ label, name, value, onChange, placeholder = '', multiline = false, optional = false, shown, onToggle, hint }) {
   return (
     <div className="flex flex-col gap-1">
@@ -113,7 +221,6 @@ function Field({ label, name, value, onChange, placeholder = '', multiline = fal
   )
 }
 
-// MRP field: ₹[input] (incl. of all taxes)
 function MRPField({ value, onChange }) {
   return (
     <div className="flex flex-col gap-1">
@@ -134,8 +241,7 @@ function MRPField({ value, onChange }) {
   )
 }
 
-// Suffixed number field: [input] suffix
-function SuffixField({ label, value, onChange, suffix, placeholder = '', optional = false, shown, onToggle }) {
+function SuffixNumberField({ label, value, onChange, suffix, placeholder = '', optional = false, shown, onToggle }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between">
@@ -163,44 +269,23 @@ function SuffixField({ label, value, onChange, suffix, placeholder = '', optiona
 }
 
 // ─── Label building blocks ────────────────────────────────────────────────────
-
-// Row: always renders (value can be empty — shows blank right cell)
-// No top/bottom border on first/last — borders are BETWEEN rows only via
-// a divider rendered BELOW each row. The first row's top-border comes from
-// the divider rendered directly under the product name heading.
 function LabelRow({ label, value, isLast = false }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', paddingTop: 4, paddingBottom: 4 }}>
         <div
           style={{
-            width: 80,
-            minWidth: 80,
-            fontSize: 5,
-            fontWeight: 600,
-            color: '#757575',
-            lineHeight: 1.5,
-            fontFamily: F,
-            paddingRight: 6,
-            flexShrink: 0,
+            width: 80, minWidth: 80,
+            fontSize: 5, fontWeight: 600, color: '#757575',
+            lineHeight: 1.5, fontFamily: F, paddingRight: 6, flexShrink: 0,
           }}
         >
           {label}
         </div>
-        <div
-          style={{
-            flex: 1,
-            fontSize: 5,
-            fontWeight: 400,
-            color: '#757575',
-            lineHeight: 1.5,
-            fontFamily: F,
-          }}
-        >
+        <div style={{ flex: 1, fontSize: 5, fontWeight: 400, color: '#757575', lineHeight: 1.5, fontFamily: F }}>
           {value}
         </div>
       </div>
-      {/* Divider after every row EXCEPT the last one */}
       {!isLast && <div style={{ height: 0.5, background: '#EEEEEE' }} />}
     </div>
   )
@@ -208,81 +293,49 @@ function LabelRow({ label, value, isLast = false }) {
 
 function LogoBar() {
   return (
-    <div
-      style={{
-        height: 14,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexShrink: 0,
-        paddingTop: 2,
-      }}
-    >
-      <div
-        style={{
-          width: 64, height: 8, background: '#E5E7EB', borderRadius: 1,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
-      >
+    <div style={{ height: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, paddingTop: 2 }}>
+      <div style={{ width: 64, height: 8, background: '#E5E7EB', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontSize: 4, fontWeight: 700, color: '#9CA3AF', letterSpacing: 1, fontFamily: F }}>NATIVE LOGO</span>
       </div>
-      <div
-        style={{
-          width: 49, height: 14, background: '#E5E7EB', borderRadius: 1,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
-      >
+      <div style={{ width: 49, height: 14, background: '#E5E7EB', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ fontSize: 4, fontWeight: 700, color: '#9CA3AF', letterSpacing: 0.5, fontFamily: F }}>UC LOGO</span>
       </div>
     </div>
   )
 }
 
-// Builds display strings from raw field values
-function fmtMRP(v) { return v ? `₹${v} (incl. of all taxes)` : '' }
-function fmtMm(v)  { return v ? `${v} mm` : '' }
-function fmtG(v)   { return v ? `${v} g` : '' }
+const fmtMRP = (v) => v ? `₹${v} (incl. of all taxes)` : ''
+const fmtMm  = (v) => v ? `${v} mm` : ''
+const fmtG   = (v) => v ? `${v} g` : ''
 
 // ─── Inner Label ──────────────────────────────────────────────────────────────
 function InnerLabel({ data }) {
-  // Always show all rows — value is empty string if not filled
   const rows = [
-    { label: 'SKU code',              value: data.skuCode },
-    { label: 'Commodity',             value: data.commodity },
-    { label: 'MRP',                   value: fmtMRP(data.mrp) },
-    { label: 'Unit sale price',       value: data.unitSalePrice },
-    { label: 'Net quantity',          value: data.netQuantity },
-    { label: 'Packaging dimensions',  value: fmtMm(data.boxDimension) },
+    { label: 'SKU code',             value: data.skuCode },
+    { label: 'Commodity',            value: data.commodity },
+    { label: 'MRP',                  value: fmtMRP(data.mrp) },
+    ...(data.showUnitSalePrice ? [{ label: 'Unit sale price', value: data.unitSalePrice }] : []),
+    { label: 'Net quantity',         value: data.netQuantity },
+    { label: 'Packaging dimensions', value: fmtMm(data.boxDimension) },
     ...(data.showNetWeight   ? [{ label: 'Net weight',   value: fmtG(data.netWeight) }]   : []),
     ...(data.showGrossWeight ? [{ label: 'Gross weight', value: fmtG(data.grossWeight) }] : []),
-    { label: 'Country of origin',     value: data.countryOfOrigin },
+    { label: 'Country of origin',    value: data.countryOfOrigin },
     ...(data.showManufacturedOn ? [{ label: 'Manufactured on', value: data.manufacturedOn }] : []),
-    { label: 'Marketed by',           value: data.marketedBy },
-    { label: 'Manufactured by',       value: data.manufacturedBy },
-    { label: 'Customer care',         value: data.customerCare },
+    { label: 'Marketed by',          value: data.marketedBy },
+    { label: 'Manufactured by',      value: data.manufacturedBy },
+    { label: 'Customer care',        value: data.customerCare },
   ]
 
   return (
-    <div
-      style={{
-        width: 320, height: 320, background: '#FFFFFF',
-        padding: '20px 20px 16px 20px',
-        display: 'flex', flexDirection: 'column',
-        boxSizing: 'border-box', fontFamily: F,
-      }}
-    >
-      {/* Product name */}
+    <div style={{ width: 320, height: 320, background: '#FFFFFF', padding: '20px 20px 16px 20px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', fontFamily: F }}>
       <div style={{ fontSize: 14, fontWeight: 500, color: '#757575', lineHeight: 1.3, marginBottom: 4, fontFamily: F, flexShrink: 0 }}>
         {data.productName || <span style={{ color: '#D1D5DB' }}>Product Name</span>}
       </div>
-
-      {/* Rows — no top/bottom border on the table, only between-row dividers */}
       <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
         {rows.map(({ label, value }, i) => (
           <LabelRow key={label} label={label} value={value} isLast={i === rows.length - 1} />
         ))}
       </div>
-
       <LogoBar />
     </div>
   )
@@ -291,50 +344,35 @@ function InnerLabel({ data }) {
 // ─── Outer Label ──────────────────────────────────────────────────────────────
 function OuterLabel({ data }) {
   const rows = [
-    { label: 'SKU code',                   value: data.skuCode },
-    { label: 'Commodity',                  value: data.commodity },
-    { label: 'Quantity in outer box',      value: data.qtyInOuterBox },
-    { label: 'Inner polybag dimensions',   value: data.innerPolybagDimensions },
-    { label: 'Outer box dimensions',       value: data.outerBoxDimensions },
-    { label: 'Net weight',                 value: fmtG(data.netWeight) },
-    { label: 'Gross weight',               value: fmtG(data.grossWeight) },
-    { label: 'Country of origin',          value: data.countryOfOrigin },
+    { label: 'SKU code',                    value: data.skuCode },
+    { label: 'Commodity',                   value: data.commodity },
+    { label: 'Quantity in outer box',        value: data.qtyInOuterBox },
+    { label: 'Inner packaging dimensions',   value: data.innerPackagingDimensions },
+    { label: 'Outer box dimensions',         value: data.outerBoxDimensions },
+    { label: 'Net weight',                   value: fmtG(data.netWeight) },
+    { label: 'Gross weight',                 value: fmtG(data.grossWeight) },
+    { label: 'Country of origin',            value: data.countryOfOrigin },
     ...(data.showManufacturedOn ? [{ label: 'Manufactured on', value: data.manufacturedOn }] : []),
-    { label: 'Marketed by',                value: data.marketedBy },
-    { label: 'Manufactured by',            value: data.manufacturedBy },
-    { label: 'NOT FOR RETAIL SALE',        value: '', isStatic: true },
+    { label: 'Marketed by',                  value: data.marketedBy },
+    { label: 'Manufactured by',              value: data.manufacturedBy },
   ]
 
   return (
-    <div
-      style={{
-        width: 320, height: 320, background: '#FFFFFF',
-        padding: '20px 20px 16px 20px',
-        display: 'flex', flexDirection: 'column',
-        boxSizing: 'border-box', fontFamily: F,
-      }}
-    >
+    <div style={{ width: 320, height: 320, background: '#FFFFFF', padding: '20px 20px 16px 20px', display: 'flex', flexDirection: 'column', boxSizing: 'border-box', fontFamily: F }}>
       <div style={{ fontSize: 14, fontWeight: 500, color: '#757575', lineHeight: 1.3, marginBottom: 4, fontFamily: F, flexShrink: 0 }}>
         {data.productName || <span style={{ color: '#D1D5DB' }}>Product Name</span>}
       </div>
-
       <div style={{ flex: 1, overflow: 'hidden', minHeight: 0 }}>
-        {rows.map(({ label, value, isStatic }, i) => {
-          const isLast = i === rows.length - 1
-          if (isStatic) {
-            return (
-              <div key={label}>
-                <div style={{ paddingTop: 4, paddingBottom: 4 }}>
-                  <span style={{ fontSize: 5, fontWeight: 600, color: '#757575', fontFamily: F }}>{label}</span>
-                </div>
-                {/* No divider after the last row */}
-              </div>
-            )
-          }
-          return <LabelRow key={label} label={label} value={value} isLast={isLast} />
-        })}
+        {rows.map(({ label, value }, i) => (
+          <LabelRow key={label} label={label} value={value} isLast={false} />
+        ))}
+        {/* NOT FOR RETAIL SALE — always last, no divider after */}
+        <div>
+          <div style={{ paddingTop: 4, paddingBottom: 4 }}>
+            <span style={{ fontSize: 5, fontWeight: 600, color: '#757575', fontFamily: F }}>NOT FOR RETAIL SALE</span>
+          </div>
+        </div>
       </div>
-
       <LogoBar />
     </div>
   )
@@ -370,46 +408,52 @@ function InnerForm({ data, onChange }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Product name — title case */}
       <Field
         label="Product Name" name="productName" value={data.productName}
         onChange={(e) => onChange({ ...data, productName: toTitleCase(e.target.value) })}
         placeholder="e.g. Flow Restrictor 300"
       />
-
-      {/* SKU — uppercase */}
       <Field
         label="SKU Code" name="skuCode" value={data.skuCode}
         onChange={(e) => onChange({ ...data, skuCode: e.target.value.toUpperCase() })}
         placeholder="e.g. NATIVE/FR/300"
       />
-
-      {/* Commodity — title case, default set */}
       <Field
         label="Commodity" name="commodity" value={data.commodity}
         onChange={(e) => onChange({ ...data, commodity: toTitleCase(e.target.value) })}
-        placeholder="e.g. Water Purifier Spare Part"
       />
-
-      {/* MRP — ₹ prefix + tax suffix */}
       <MRPField value={data.mrp} onChange={(v) => onChange({ ...data, mrp: v })} />
 
-      {/* Unit sale price */}
-      <Field label="Unit Sale Price" name="unitSalePrice" value={data.unitSalePrice} onChange={h} placeholder="e.g. ₹399" />
+      {/* Unit Sale Price — toggleable */}
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Unit Sale Price <span className="font-normal normal-case text-gray-400">(optional)</span>
+          </label>
+          <Toggle checked={data.showUnitSalePrice} onChange={t('showUnitSalePrice')} />
+        </div>
+        {data.showUnitSalePrice && (
+          <input
+            type="text"
+            name="unitSalePrice"
+            value={data.unitSalePrice}
+            onChange={h}
+            placeholder="e.g. ₹399"
+            className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 transition"
+          />
+        )}
+      </div>
 
-      {/* Net quantity */}
       <Field label="Net Quantity" name="netQuantity" value={data.netQuantity} onChange={h} placeholder="e.g. 1 Unit" />
 
-      {/* Packaging dimensions — mm suffix */}
+      {/* Packaging Dimensions — mm */}
       <div className="flex flex-col gap-1">
         <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
           Packaging Dimensions <span className="font-normal normal-case text-gray-400">(in mm)</span>
         </label>
         <div className="flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400 transition">
           <input
-            type="text"
-            inputMode="numeric"
-            value={data.boxDimension}
+            type="text" inputMode="numeric" value={data.boxDimension}
             onChange={(e) => onChange({ ...data, boxDimension: digitsOnly(e.target.value) })}
             placeholder="e.g. 120"
             className="flex-1 px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent min-w-0"
@@ -418,60 +462,13 @@ function InnerForm({ data, onChange }) {
         </div>
       </div>
 
-      {/* Net weight — g suffix, optional */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            Net Weight <span className="font-normal normal-case text-gray-400">(optional)</span>
-          </label>
-          <Toggle checked={data.showNetWeight} onChange={t('showNetWeight')} />
-        </div>
-        {data.showNetWeight && (
-          <div className="flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400 transition">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={data.netWeight}
-              onChange={(e) => onChange({ ...data, netWeight: digitsOnly(e.target.value) })}
-              placeholder="e.g. 20"
-              className="flex-1 px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent min-w-0"
-            />
-            <span className="pr-3 text-sm text-gray-300 select-none">g</span>
-          </div>
-        )}
-      </div>
-
-      {/* Gross weight — g suffix, optional */}
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            Gross Weight <span className="font-normal normal-case text-gray-400">(optional)</span>
-          </label>
-          <Toggle checked={data.showGrossWeight} onChange={t('showGrossWeight')} />
-        </div>
-        {data.showGrossWeight && (
-          <div className="flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400 transition">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={data.grossWeight}
-              onChange={(e) => onChange({ ...data, grossWeight: digitsOnly(e.target.value) })}
-              placeholder="e.g. 22"
-              className="flex-1 px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent min-w-0"
-            />
-            <span className="pr-3 text-sm text-gray-300 select-none">g</span>
-          </div>
-        )}
-      </div>
+      <SuffixNumberField label="Net Weight" value={data.netWeight} onChange={(v) => onChange({ ...data, netWeight: v })} suffix="g" placeholder="e.g. 20" optional shown={data.showNetWeight} onToggle={t('showNetWeight')} />
+      <SuffixNumberField label="Gross Weight" value={data.grossWeight} onChange={(v) => onChange({ ...data, grossWeight: v })} suffix="g" placeholder="e.g. 22" optional shown={data.showGrossWeight} onToggle={t('showGrossWeight')} />
 
       <Field label="Country of Origin" name="countryOfOrigin" value={data.countryOfOrigin} onChange={h} />
-
-      <Field
-        label="Manufactured On" name="manufacturedOn" value={data.manufacturedOn} onChange={h}
-        placeholder="e.g. Jan 2024" optional shown={data.showManufacturedOn} onToggle={t('showManufacturedOn')}
-      />
+      <Field label="Manufactured On" name="manufacturedOn" value={data.manufacturedOn} onChange={h} placeholder="e.g. Jan 2024" optional shown={data.showManufacturedOn} onToggle={t('showManufacturedOn')} />
       <Field label="Marketed By" name="marketedBy" value={data.marketedBy} onChange={h} multiline />
-      <Field label="Manufactured By" name="manufacturedBy" value={data.manufacturedBy} onChange={h} multiline placeholder="Manufacturer name and address" />
+      <ManufacturerField value={data.manufacturedBy} onChange={(v) => onChange({ ...data, manufacturedBy: v })} />
       <Field label="Customer Care" name="customerCare" value={data.customerCare} onChange={h} multiline />
     </div>
   )
@@ -497,47 +494,16 @@ function OuterForm({ data, onChange }) {
       <Field
         label="Commodity" name="commodity" value={data.commodity}
         onChange={(e) => onChange({ ...data, commodity: toTitleCase(e.target.value) })}
-        placeholder="e.g. Water Purifier Spare Part"
       />
       <Field label="Quantity in Outer Box" name="qtyInOuterBox" value={data.qtyInOuterBox} onChange={h} placeholder="e.g. 12" />
-      <Field label="Inner Polybag Dimensions" name="innerPolybagDimensions" value={data.innerPolybagDimensions} onChange={h} placeholder="e.g. 200×150mm" />
+      <Field label="Inner Packaging Dimensions" name="innerPackagingDimensions" value={data.innerPackagingDimensions} onChange={h} placeholder="e.g. 200×150mm" />
       <Field label="Outer Box Dimensions" name="outerBoxDimensions" value={data.outerBoxDimensions} onChange={h} placeholder="e.g. 400×300×250mm" />
-
-      {/* Net weight — g */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Net Weight</label>
-        <div className="flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400 transition">
-          <input
-            type="text" inputMode="numeric" value={data.netWeight}
-            onChange={(e) => onChange({ ...data, netWeight: digitsOnly(e.target.value) })}
-            placeholder="e.g. 3000"
-            className="flex-1 px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent min-w-0"
-          />
-          <span className="pr-3 text-sm text-gray-300 select-none">g</span>
-        </div>
-      </div>
-
-      {/* Gross weight — g */}
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Gross Weight</label>
-        <div className="flex items-center rounded-lg border border-gray-200 bg-white overflow-hidden focus-within:border-indigo-400 focus-within:ring-1 focus-within:ring-indigo-400 transition">
-          <input
-            type="text" inputMode="numeric" value={data.grossWeight}
-            onChange={(e) => onChange({ ...data, grossWeight: digitsOnly(e.target.value) })}
-            placeholder="e.g. 3500"
-            className="flex-1 px-3 py-2 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent min-w-0"
-          />
-          <span className="pr-3 text-sm text-gray-300 select-none">g</span>
-        </div>
-      </div>
-
+      <SuffixNumberField label="Net Weight" value={data.netWeight} onChange={(v) => onChange({ ...data, netWeight: v })} suffix="g" placeholder="e.g. 3000" />
+      <SuffixNumberField label="Gross Weight" value={data.grossWeight} onChange={(v) => onChange({ ...data, grossWeight: v })} suffix="g" placeholder="e.g. 3500" />
       <Field label="Country of Origin" name="countryOfOrigin" value={data.countryOfOrigin} onChange={h} />
-      <Field
-        label="Manufactured On" name="manufacturedOn" value={data.manufacturedOn} onChange={h}
-        placeholder="e.g. Jan 2024" optional shown={data.showManufacturedOn} onToggle={t('showManufacturedOn')}
-      />
+      <Field label="Manufactured On" name="manufacturedOn" value={data.manufacturedOn} onChange={h} placeholder="e.g. Jan 2024" optional shown={data.showManufacturedOn} onToggle={t('showManufacturedOn')} />
       <Field label="Marketed By" name="marketedBy" value={data.marketedBy} onChange={h} multiline />
-      <Field label="Manufactured By" name="manufacturedBy" value={data.manufacturedBy} onChange={h} multiline placeholder="Manufacturer name and address" />
+      <ManufacturerField value={data.manufacturedBy} onChange={(v) => onChange({ ...data, manufacturedBy: v })} />
     </div>
   )
 }
