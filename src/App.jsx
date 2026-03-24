@@ -330,7 +330,7 @@ function SuffixNumberField({ label, value, onChange, suffix, placeholder='', opt
 function LabelRow({ label, value, isLast=false }) {
   return (
     <div>
-      <div style={{ display:'flex', alignItems:'flex-start', paddingTop:4, paddingBottom:4 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', paddingTop:3, paddingBottom:3 }}>
         <div style={{ width:80, minWidth:80, fontSize:5, fontWeight:600, color:'#757575', lineHeight:1.5, fontFamily:F, paddingRight:6, flexShrink:0 }}>
           {label}
         </div>
@@ -415,7 +415,7 @@ function OuterLabel({ data }) {
           <LabelRow key={label} label={label} value={value} isLast={false} />
         ))}
         <div>
-          <div style={{ paddingTop:4, paddingBottom:4 }}>
+          <div style={{ paddingTop:3, paddingBottom:3 }}>
             <span style={{ fontSize:5, fontWeight:600, color:'#757575', fontFamily:F }}>NOT FOR RETAIL SALE</span>
           </div>
         </div>
