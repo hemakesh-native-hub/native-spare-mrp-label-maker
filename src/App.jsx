@@ -70,19 +70,18 @@ const makeOuterState = () => ({
 
 // ─── Export engine ────────────────────────────────────────────────────────────
 
-// Fetch a font file from /public/fonts/ and return a base64 data URI string.
-// Falls back gracefully if the file can't be fetched.
-async function fetchFontAsBase64(filename) {
+// Fetch any public asset and return a base64 string. Falls back gracefully.
+async function fetchAsBase64(url) {
   try {
-    const res = await fetch(`/fonts/${filename}`)
+    const res   = await fetch(url)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const buf = await res.arrayBuffer()
+    const buf   = await res.arrayBuffer()
     const bytes = new Uint8Array(buf)
-    let binary = ''
+    let binary  = ''
     for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i])
     return btoa(binary)
   } catch (e) {
-    console.warn(`Could not load font ${filename}:`, e)
+    console.warn(`Could not load asset ${url}:`, e)
     return null
   }
 }
@@ -90,9 +89,9 @@ async function fetchFontAsBase64(filename) {
 // Build the @font-face CSS block with base64 data URIs embedded inline.
 async function buildEmbeddedFontCSS() {
   const [regular, medium, semibold] = await Promise.all([
-    fetchFontAsBase64('OpenSauceOne-Regular.woff2'),
-    fetchFontAsBase64('OpenSauceOne-Medium.woff2'),
-    fetchFontAsBase64('OpenSauceOne-SemiBold.woff2'),
+    fetchAsBase64('/fonts/OpenSauceOne-Regular.woff2'),
+    fetchAsBase64('/fonts/OpenSauceOne-Medium.woff2'),
+    fetchAsBase64('/fonts/OpenSauceOne-SemiBold.woff2'),
   ])
 
   const face = (weight, b64) => b64
@@ -107,6 +106,18 @@ async function buildEmbeddedFontCSS() {
   ].join('\n')
 }
 
+// Fetch both logos as base64 data URIs for SVG/PDF embedding.
+async function fetchLogoDataURIs() {
+  const [native, uc] = await Promise.all([
+    fetchAsBase64('/logos/native-logo.png'),
+    fetchAsBase64('/logos/uc-logo.png'),
+  ])
+  return {
+    native: native ? `data:image/png;base64,${native}` : null,
+    uc:     uc     ? `data:image/png;base64,${uc}`     : null,
+  }
+}
+
 // Derive export filename from product name + label type
 function buildFilename(productName, labelType, ext) {
   const name = (productName || 'Untitled').trim()
@@ -114,10 +125,14 @@ function buildFilename(productName, labelType, ext) {
   return `${name} (${suffix}).${ext}`
 }
 
-// SVG export — embeds font as base64 inside <defs>
-async function exportSVG(labelRef, productName, labelType) {
-  const fontCSS = await buildEmbeddedFontCSS()
-  const labelHTML = labelRef.current.innerHTML
+// SVG export — embeds font + logos as base64 inside <defs>
+async function exportSVG(labelRef, productName, labelType, logoDataURIs) {
+  const fontCSS   = await buildEmbeddedFontCSS()
+
+  // Replace src="/logos/..." in the captured HTML with base64 data URIs
+  let labelHTML = labelRef.current.innerHTML
+  if (logoDataURIs.native) labelHTML = labelHTML.replaceAll('/logos/native-logo.png', logoDataURIs.native)
+  if (logoDataURIs.uc)     labelHTML = labelHTML.replaceAll('/logos/uc-logo.png',     logoDataURIs.uc)
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320">
   <defs>
@@ -167,10 +182,11 @@ async function exportPDF(labelRef, productName, labelType) {
   pdf.save(buildFilename(productName, labelType, 'pdf'))
 }
 
-// Master export — runs SVG and PDF in parallel
+// Master export — fetches logos once, then runs SVG and PDF in parallel
 async function runExport(labelRef, productName, labelType) {
+  const logoDataURIs = await fetchLogoDataURIs()
   await Promise.all([
-    exportSVG(labelRef, productName, labelType),
+    exportSVG(labelRef, productName, labelType, logoDataURIs),
     exportPDF(labelRef, productName, labelType),
   ])
 }
@@ -346,12 +362,18 @@ function LabelRow({ label, value, isLast=false }) {
 function LogoBar() {
   return (
     <div style={{ height:14, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, paddingTop:2 }}>
-      <div style={{ width:64, height:8, background:'#E5E7EB', borderRadius:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <span style={{ fontSize:4, fontWeight:700, color:'#9CA3AF', letterSpacing:1, fontFamily:F }}>NATIVE LOGO</span>
-      </div>
-      <div style={{ width:49, height:14, background:'#E5E7EB', borderRadius:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <span style={{ fontSize:4, fontWeight:700, color:'#9CA3AF', letterSpacing:0.5, fontFamily:F }}>UC LOGO</span>
-      </div>
+      {/* NATIVE logo — 8h × 64w px */}
+      <img
+        src="/logos/native-logo.png"
+        alt="NATIVE"
+        style={{ width:64, height:8, objectFit:'contain', objectPosition:'left center', display:'block' }}
+      />
+      {/* Urban Company logo — 14h × 49w px */}
+      <img
+        src="/logos/uc-logo.png"
+        alt="Urban Company"
+        style={{ width:49, height:14, objectFit:'contain', objectPosition:'right center', display:'block' }}
+      />
     </div>
   )
 }
