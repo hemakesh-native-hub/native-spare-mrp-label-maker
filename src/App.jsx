@@ -109,12 +109,12 @@ async function buildEmbeddedFontCSS() {
 // Fetch both logos as base64 data URIs for SVG/PDF embedding.
 async function fetchLogoDataURIs() {
   const [native, uc] = await Promise.all([
-    fetchAsBase64('/logos/native-logo.png'),
-    fetchAsBase64('/logos/uc-logo.png'),
+    fetchAsBase64('/logos/native-logo.svg'),
+    fetchAsBase64('/logos/uc-logo.svg'),
   ])
   return {
-    native: native ? `data:image/png;base64,${native}` : null,
-    uc:     uc     ? `data:image/png;base64,${uc}`     : null,
+    native: native ? `data:image/svg+xml;base64,${native}` : null,
+    uc:     uc     ? `data:image/svg+xml;base64,${uc}`     : null,
   }
 }
 
@@ -131,8 +131,8 @@ async function exportSVG(labelRef, productName, labelType, logoDataURIs) {
 
   // Replace src="/logos/..." in the captured HTML with base64 data URIs
   let labelHTML = labelRef.current.innerHTML
-  if (logoDataURIs.native) labelHTML = labelHTML.replaceAll('/logos/native-logo.png', logoDataURIs.native)
-  if (logoDataURIs.uc)     labelHTML = labelHTML.replaceAll('/logos/uc-logo.png',     logoDataURIs.uc)
+  if (logoDataURIs.native) labelHTML = labelHTML.replaceAll('/logos/native-logo.svg', logoDataURIs.native)
+  if (logoDataURIs.uc)     labelHTML = labelHTML.replaceAll('/logos/uc-logo.svg',     logoDataURIs.uc)
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320">
   <defs>
@@ -364,13 +364,13 @@ function LogoBar() {
     <div style={{ height:14, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, paddingTop:2 }}>
       {/* NATIVE logo — 8h × 64w px */}
       <img
-        src="/logos/native-logo.png"
+        src="/logos/native-logo.svg"
         alt="NATIVE"
         style={{ width:64, height:8, objectFit:'contain', objectPosition:'left center', display:'block' }}
       />
       {/* Urban Company logo — 14h × 49w px */}
       <img
-        src="/logos/uc-logo.png"
+        src="/logos/uc-logo.svg"
         alt="Urban Company"
         style={{ width:49, height:14, objectFit:'contain', objectPosition:'right center', display:'block' }}
       />
