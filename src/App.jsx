@@ -195,42 +195,14 @@ function buildFilename(productName, labelType, ext) {
 // and the PDF export (same canvas, no re-render).
 // Scale 4× → 1280×1280px raster → razor-sharp at 80×80mm print size (~400 DPI).
 async function renderLabelToCanvas(labelRef) {
-  const original = labelRef.current
-
-  // Clone the label and mount it directly on body, completely outside
-  // any parent with overflow:hidden or flex constraints — this is what
-  // html2canvas actually sees and measures. Avoids all clipping/layout bugs.
-  const clone = original.cloneNode(true)
-  Object.assign(clone.style, {
-    position:   'fixed',
-    top:        '-9999px',
-    left:       '-9999px',
-    width:      '320px',
-    height:     '320px',
-    overflow:   'visible',
-    // Ensure outline/shadow from preview wrapper don't bleed in
-    boxShadow:  'none',
-    outline:    'none',
-    borderRadius: '0',
+  return html2canvas(labelRef.current, {
+    scale: 4,                    // 4× = 1280px for a 320px element → ~400 DPI at 80mm print
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+    imageTimeout: 0,
   })
-  document.body.appendChild(clone)
-
-  try {
-    return await html2canvas(clone, {
-      scale:           4,
-      useCORS:         true,
-      allowTaint:      true,
-      backgroundColor: '#ffffff',
-      logging:         false,
-      imageTimeout:    0,
-      width:           320,
-      height:          320,
-      windowWidth:     320,
-      windowHeight:    320,
-    })
-  } finally {
-    document.body.removeChild(clone)
-  }
 }
 
 // FIX 2: SVG now embeds the canvas raster as a <image> PNG — no foreignObject,
@@ -489,8 +461,8 @@ function DimensionField({ label, value, onChange, placeholder='e.g. 120 × 120',
 // ─── Label components ─────────────────────────────────────────────────────────
 function LabelRow({ label, value, isLast=false }) {
   return (
-    <div style={{ paddingTop:3, paddingBottom:3 }}>
-      <div style={{ display:'flex', alignItems:'flex-start' }}>
+    <div>
+      <div style={{ display:'flex', alignItems:'flex-start', paddingTop:3, paddingBottom:3 }}>
         <div style={{ width:80, minWidth:80, fontSize:5, fontWeight:600, color:'#757575', lineHeight:1.5, fontFamily:F, paddingRight:6, flexShrink:0 }}>{label}</div>
         <div style={{ flex:1, fontSize:5, fontWeight:400, color:'#757575', lineHeight:1.5, fontFamily:F }}>{value}</div>
       </div>
@@ -562,9 +534,7 @@ function OuterLabel({ data }) {
       </div>
       <div style={{ flex:1, overflow:'hidden', minHeight:0 }}>
         {rows.map(({ label, value }) => <LabelRow key={label} label={label} value={value} isLast={false} />)}
-        <div style={{ paddingTop:3, paddingBottom:3 }}>
-          <span style={{ fontSize:5, fontWeight:600, color:'#757575', fontFamily:F }}>NOT FOR RETAIL SALE</span>
-        </div>
+        <div><div style={{ paddingTop:3, paddingBottom:3 }}><span style={{ fontSize:5, fontWeight:600, color:'#757575', fontFamily:F }}>NOT FOR RETAIL SALE</span></div></div>
       </div>
       <LogoBar />
     </div>
