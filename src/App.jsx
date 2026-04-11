@@ -506,7 +506,7 @@ function InnerLabel({ data }) {
     { label:'Customer care',        value:data.customerCare },
   ]
   return (
-    <div style={{ width:320, height:320, background:'#FFFFFF', padding:'20px 20px 20px 20px', display:'flex', flexDirection:'column', boxSizing:'border-box', fontFamily:F }}>
+    <div style={{ width:320, height:320, background:'#FFFFFF', padding:'20px 20px 0px 20px', display:'flex', flexDirection:'column', boxSizing:'border-box', fontFamily:F }}>
       <div style={{ fontSize:14, fontWeight:500, color:'#757575', lineHeight:1.3, marginBottom:4, fontFamily:F, flexShrink:0 }}>
         {data.productName || <span style={{ color:'#D1D5DB' }}>Product Name</span>}
       </div>
