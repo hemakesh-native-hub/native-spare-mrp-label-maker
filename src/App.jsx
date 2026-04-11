@@ -507,7 +507,7 @@ function InnerLabel({ data }) {
   ]
   return (
     <div style={{ width:320, height:320, background:'#FFFFFF', padding:'20px 20px 16px 20px', display:'flex', flexDirection:'column', boxSizing:'border-box', fontFamily:F }}>
-      <div style={{ fontSize:14, fontWeight:500, color:'#757575', lineHeight:1.8, marginBottom:4, fontFamily:F, flexShrink:0 }}>
+      <div style={{ fontSize:14, fontWeight:500, color:'#757575', lineHeight:1.8, marginBottom:0, fontFamily:F, flexShrink:0 }}>
         {data.productName || <span style={{ color:'#D1D5DB' }}>Product Name</span>}
       </div>
       <div style={{ flex:1, overflow:'hidden', minHeight:0 }}>
