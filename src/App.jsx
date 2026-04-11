@@ -460,13 +460,16 @@ function DimensionField({ label, value, onChange, placeholder='e.g. 120 × 120',
 
 // ─── Label components ─────────────────────────────────────────────────────────
 function LabelRow({ label, value, isLast=false }) {
+  // Block-level spacers with explicit pixel heights — most reliable for html2canvas
   return (
-    <div style={{ paddingTop:3, paddingBottom:3 }}>
+    <div>
+      <div style={{ height:3, fontSize:0, lineHeight:0 }} />
       <div style={{ display:'flex', alignItems:'flex-start' }}>
         <div style={{ width:80, minWidth:80, fontSize:5, fontWeight:600, color:'#757575', lineHeight:1.5, fontFamily:F, paddingRight:6, flexShrink:0 }}>{label}</div>
         <div style={{ flex:1, fontSize:5, fontWeight:400, color:'#757575', lineHeight:1.5, fontFamily:F }}>{value}</div>
       </div>
-      {!isLast && <div style={{ height:0.5, background:'#EEEEEE', marginTop:3 }} />}
+      <div style={{ height:3, fontSize:0, lineHeight:0 }} />
+      {!isLast && <div style={{ height:1, background:'#EEEEEE' }} />}
     </div>
   )
 }
@@ -534,7 +537,11 @@ function OuterLabel({ data }) {
       </div>
       <div style={{ flex:1, overflow:'hidden', minHeight:0 }}>
         {rows.map(({ label, value }) => <LabelRow key={label} label={label} value={value} isLast={false} />)}
-        <div style={{ paddingTop:3, paddingBottom:3 }}><span style={{ fontSize:5, fontWeight:600, color:'#757575', fontFamily:F }}>NOT FOR RETAIL SALE</span></div>
+        <div>
+          <div style={{ height:3, fontSize:0, lineHeight:0 }} />
+          <div style={{ fontSize:5, fontWeight:600, color:'#757575', fontFamily:F }}>NOT FOR RETAIL SALE</div>
+          <div style={{ height:3, fontSize:0, lineHeight:0 }} />
+        </div>
       </div>
       <LogoBar />
     </div>
