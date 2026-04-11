@@ -462,7 +462,7 @@ function DimensionField({ label, value, onChange, placeholder='e.g. 120 × 120',
 function LabelRow({ label, value, isLast=false }) {
   return (
     <div>
-      <div style={{ display:'flex', alignItems:'flex-start', paddingTop:3, paddingBottom:3 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', paddingTop:3, paddingBottom:0 }}>
         <div style={{ width:80, minWidth:80, fontSize:5, fontWeight:600, color:'#757575', lineHeight:1.5, fontFamily:F, paddingRight:6, flexShrink:0 }}>{label}</div>
         <div style={{ flex:1, fontSize:5, fontWeight:400, color:'#757575', lineHeight:1.5, fontFamily:F }}>{value}</div>
       </div>
